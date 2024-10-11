@@ -11,17 +11,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.acme.constants.Errors;
 import org.acme.constants.Success;
 import org.acme.service.DomainValidationService;
-import org.acme.utils.DomainValidator;
 
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Path("/domains")
 public class DomainResource {
 
+
+    private final DomainValidationService domainValidationService;
+
     @Inject
-    private DomainValidationService domainValidationService;
+    public DomainResource(DomainValidationService domainValidationService) {
+        this.domainValidationService = domainValidationService;
+    }
 
     /**
      * version: 1.0.0
