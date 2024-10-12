@@ -68,7 +68,7 @@ public class DomainResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Uni<Response> validateDNSEntries(List<String> domains) {
         return domainValidationService.validateDNSEntries(domains)
-                .onItem().transform(success -> Response.status(Response.Status.CREATED)
+                .onItem().transform(success -> Response.status(Response.Status.OK)
                         .entity(new org.acme.model.Response(Success.NO_DNS_ENTRIES_EXISTS)).build())
                 .onFailure(DNSAlreadyExistsException.class)
                 .recoverWithItem(ex -> {

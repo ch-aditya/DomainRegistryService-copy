@@ -20,8 +20,8 @@ public class DNSValidator {
 
     /**
      * Looks up for NS record entries
-     * @param domain
-     * @return
+     * @param domain "Domain name"
+     * @return "Void"
      */
     public static Uni<Object> doesNameServerExists(String domain) {
         return Uni.createFrom().item(() -> {
