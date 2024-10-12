@@ -3,8 +3,6 @@ package org.acme.service;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.acme.constants.Errors;
 import org.acme.exceptions.DNSAlreadyExistsException;
@@ -13,12 +11,8 @@ import org.acme.exceptions.InvalidDomainNameException;
 import org.acme.utils.DNSValidator;
 import org.acme.utils.DomainValidator;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 @ApplicationScoped
@@ -64,10 +58,10 @@ public class DomainValidationService {
                                 return Uni.createFrom().failure(new DNSAlreadyExistsException(Errors.NS_RECORD_ALREADY_EXISTS + domain));
                             }
                             log.info("No NS records found for domain: {}. Proceeding to create DNS entry...", domain);
-                            return createDNSEntries(); // Call your DNS creation logic here
+                            return createDNSEntries();
                         })
                 ).toList()
-        ).discardItems(); // Combine all Uni operations into a single one
+        ).discardItems();
     }
 
 
