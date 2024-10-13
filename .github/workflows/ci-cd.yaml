@@ -10,6 +10,11 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  PROJECT_ID: architect-learning-435310
+  REGION: asia-south1
+  REPO_NAME: domain-registry-repo
+
 jobs:
   deploy_to_artifact_registry:
     runs-on: ubuntu-latest
@@ -42,3 +47,18 @@ jobs:
 
       - name: 'Use gcloud CLI'
         run: 'gcloud info'
+
+      # Authenticate Docker with GCP's Artifact Registry (or Container Registry)
+      - name: Docker Auth
+        run: |-
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+          
+      # Build Docker image
+      - name: Build Docker image
+        run: |-
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/my-app:latest .
+
+      # Push Docker image to GCP Artifact Registry
+      - name: Push Docker image
+        run: |-
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/my-app:latest
