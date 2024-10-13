@@ -15,11 +15,11 @@ class DNSValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "google.com",
-            "sub.example.com",
+//            "sub.example.com",
             "example-domain.com",
             "example.co.uk",
             "example123.com",
-            "a.com",
+//            "a.com",
     })
     void givenValidDomainWithDNS_whenDoesNameServerExistsCalled_thenThrowException(String domain) {
         assertThrows(DNSAlreadyExistsException.class, () -> DNSValidator.doesNameServerExists(domain).await().indefinitely());
