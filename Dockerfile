@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM gradle:8.8.0-jdk21-alpine AS build
+FROM gradle:8.10.0-jdk21-alpine AS build
 WORKDIR /workspace
 COPY build.gradle settings.gradle gradle.properties ./
 COPY gradlew ./
