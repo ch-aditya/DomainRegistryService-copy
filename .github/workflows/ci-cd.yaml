@@ -33,3 +33,12 @@ jobs:
         with:
           workload_identity_provider: "projects/342909886583/locations/global/workloadIdentityPools/domain-registry-service/providers/git-repo-provider"
           service_account: "domain-registry-auth-sa@architect-learning-435310.iam.gserviceaccount.com"
+
+      # Set up gcloud CLI (Optional, but helpful for BigQuery, GCS, etc.)
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: ">= 363.0.0"
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
