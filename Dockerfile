@@ -15,5 +15,5 @@ COPY --from=build /workspace/build/quarkus-app/app/ ./app/
 COPY --from=build /workspace/build/quarkus-app/quarkus/ ./quarkus/
 COPY --from=build /workspace/build/quarkus-app/*.jar ./
 COPY --from=build /workspace/build/quarkus-app/quarkus/quarkus-application.dat ./quarkus-application.dat
-
+EXPOSE 8080
 CMD ["java", "-jar", "quarkus-run.jar"]
