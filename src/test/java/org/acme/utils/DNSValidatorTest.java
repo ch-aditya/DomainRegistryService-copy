@@ -20,6 +20,7 @@ class DNSValidatorTest {
             "example.co.uk",
             "example123.com",
 //            "a.com",
+
     })
     void givenValidDomainWithDNS_whenDoesNameServerExistsCalled_thenThrowException(String domain) {
         assertThrows(DNSAlreadyExistsException.class, () -> DNSValidator.doesNameServerExists(domain).await().indefinitely());
