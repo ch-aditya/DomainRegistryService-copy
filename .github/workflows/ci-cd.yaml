@@ -18,6 +18,8 @@ env:
   REGION: asia-south1
   REPO_NAME: domain-registry-repo
   AUTH_SERVICE_ACCOUNT: domain-registry-auth-sa@architect-learning-435310.iam.gserviceaccount.com
+  DEV_ARTIFACTORY: "dev-docker.pkg.dev"        # Dev Artifact Registry URL
+  RELEASE_ARTIFACTORY: "release-docker.pkg.dev"  # Release Artifact Registry URL
 
 jobs:
   deploy_to_artifact_registry:
@@ -69,5 +71,21 @@ jobs:
 
       # Push Docker image to GCP Artifact Registry
       - name: Push Docker image
+#        run: |-
+#          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+
         run: |-
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ github.base_ref }}" == "develop" ]]; then
+              # Push to the development Artifact Registry
+              docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }} ${{ env.DEV_ARTIFACTORY }}/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+              docker push ${{ env.DEV_ARTIFACTORY }}/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+            elif [[ "${{ github.base_ref }}" == "release" ]]; then
+              # Push to the release Artifact Registry
+              docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }} ${{ env.RELEASE_ARTIFACTORY }}/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+              docker push ${{ env.RELEASE_ARTIFACTORY }}/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+            fi
+          else
+            # For pushes or manual triggers, push to the production Artifact Registry
+            docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+          fi
