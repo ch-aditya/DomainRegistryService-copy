@@ -41,9 +41,12 @@ jobs:
       - name: Install Dependencies
         run: ./gradlew build --no-daemon
 
+      - name: Run Tests and Generate Coverage
+        run: ./gradlew test jacocoTestReport --no-daemon
+
       - name: Check Coverage
         run: |
-          COVERAGE=$(./gradlew jacocoTestReport | grep -oP '\d+\.\d+(?=%)')  # Adjust the command to extract the coverage
+          COVERAGE=$(./gradlew jacocoTestReport | grep -oP '\d+\.\d+(?=%)')
           echo "Coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 70" | bc -l) )); then
             echo "Coverage is below 70%, failing the build."
