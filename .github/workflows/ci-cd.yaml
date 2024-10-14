@@ -2,7 +2,7 @@ name: CI-CD
 on:
   push:
     tags:
-      - 'release/*'
+      - 'v*'
     branches: ["main","develop","release/**"]
   pull_request:
     types: [opened]
