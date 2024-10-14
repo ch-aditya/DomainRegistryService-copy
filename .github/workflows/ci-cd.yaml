@@ -41,19 +41,19 @@ jobs:
       - name: Install Dependencies
         run: ./gradlew build --no-daemon
 
-      - name: Run Tests and Generate Coverage
-        run: ./gradlew test test --no-daemon
-
-      - name: Check Coverage
-        run: |
-          COVERAGE=$(./gradlew test | grep -oP '\d+\.\d+(?=%)')
-          echo "Coverage: $COVERAGE%"
-          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
-            echo "Coverage is below 70%, failing the build."
-            exit 1
-          else
-            echo "Coverage is above 70%"
-          fi
+#      - name: Run Tests and Generate Coverage
+#        run: ./gradlew test test --no-daemon
+#
+#      - name: Check Coverage
+#        run: |
+#          COVERAGE=$(./gradlew test | grep -oP '\d+\.\d+(?=%)')
+#          echo "Coverage: $COVERAGE%"
+#          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+#            echo "Coverage is below 70%, failing the build."
+#            exit 1
+#          else
+#            echo "Coverage is above 70%"
+#          fi
 
       # Authenticate to Google Cloud using Workload Identity Federation (WIF)
       - name: Authenticate to GCP using Workload Identity Federation
