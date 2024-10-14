@@ -6,9 +6,10 @@ on:
     branches: ["main","develop","release/**"]
   pull_request:
     types:
-      - opened        # When the PR is created
-      - reopened      # When the PR is reopened
-      - synchronize    # When new commits are pushed to an open PR
+      - opened
+      - reopened
+      - synchronize
+      - closed
   workflow_dispatch:
 
 permissions:
