@@ -83,9 +83,12 @@ jobs:
             elif [[ "${{ github.base_ref }}" == "release" ]]; then
               # build docker name for the release Artifact Registry
               docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.RELEASE_ARTIFACTORY }}/domain-registry-service:${{ env.TAG_NAME }} .
+            fi
           else
             # for manual trigger
             docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }} .
+          fi
+
       # Push Docker image to GCP Artifact Registry
       - name: Push Docker image
 #        run: |-
