@@ -2,7 +2,7 @@ name: CI-CD
 on:
   push:
     tags:
-      - 'v*'
+      - '*'
     branches: ["main","develop","release/**"]
   pull_request:
     types: [opened]
@@ -60,7 +60,7 @@ jobs:
       # Extract the tag version
       - name: Get tag version
         id: get_tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       # Build Docker image
       - name: Build Docker image
