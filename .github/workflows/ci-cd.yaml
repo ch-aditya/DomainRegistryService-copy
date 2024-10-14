@@ -64,7 +64,7 @@ jobs:
       # Build Docker image
       - name: Build Docker image
         run: |-
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/my-app:${{ env.TAG_NAME }} .
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }} .
 
       # Push Docker image to GCP Artifact Registry
       - name: Push Docker image
