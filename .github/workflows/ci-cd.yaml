@@ -1,14 +1,29 @@
 name: CI-CD
 on:
   push:
+    tags:
+      - '*'
     branches: ["main","develop","release/**"]
   pull_request:
-    types: [opened]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
   workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
+
+env:
+  PROJECT_ID: architect-learning-435310
+  PROJECT_NUMBER: 342909886583
+  REGION: asia-south1
+  REPO_NAME: domain-registry-repo
+  AUTH_SERVICE_ACCOUNT: domain-registry-auth-sa@architect-learning-435310.iam.gserviceaccount.com
+  DEV_ARTIFACTORY: dev-docker-repo       # Dev Artifact Registry
+  RELEASE_ARTIFACTORY: release-docker-repo  # Release Artifact Registry
 
 jobs:
   deploy_to_artifact_registry:
@@ -26,3 +41,85 @@ jobs:
 
       - name: Install Dependencies
         run: ./gradlew build --no-daemon
+
+#      - name: Run Tests and Generate Coverage
+#        run: ./gradlew test test --no-daemon
+#
+#      - name: Check Coverage
+#        run: |
+#          COVERAGE=$(./gradlew test | grep -oP '\d+\.\d+(?=%)')
+#          echo "Coverage: $COVERAGE%"
+#          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+#            echo "Coverage is below 70%, failing the build."
+#            exit 1
+#          else
+#            echo "Coverage is above 70%"
+#          fi
+
+      # Authenticate to Google Cloud using Workload Identity Federation (WIF)
+      - name: Authenticate to GCP using Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/domain-registry-service/providers/git-repo-provider"
+          service_account: ${{ env.AUTH_SERVICE_ACCOUNT }}
+
+      # Set up gcloud CLI (Optional, but helpful for BigQuery, GCS, etc.)
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: ">= 363.0.0"
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
+      # Authenticate Docker with GCP's Artifact Registry (or Container Registry)
+      - name: Docker Auth
+        run: |-
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # Extract the tag version
+      - name: Get tag version
+        id: get_tag
+#        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "TAG_NAME=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |-
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ github.base_ref }}" == "develop" ]]; then
+              # build docker name for the development Artifact Registry
+              docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.DEV_ARTIFACTORY }}/domain-registry-service:${{ env.TAG_NAME }} .
+            elif [[ "${{ github.base_ref }}" == "release" ]]; then
+              # build docker name for the release Artifact Registry
+              docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.RELEASE_ARTIFACTORY }}/domain-registry-service:${{ env.TAG_NAME }} .
+            fi
+          else
+            # for manual trigger
+            docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }} .
+          fi
+
+      # Push Docker image to GCP Artifact Registry
+      - name: Push Docker image
+#        run: |-
+#          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+
+        run: |-
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ github.base_ref }}" == "develop" ]]; then
+              # Push to the development Artifact Registry
+              docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.DEV_ARTIFACTORY }}/domain-registry-service:${{ env.TAG_NAME }}
+
+            elif [[ "${{ github.base_ref }}" == "release" ]]; then
+              # Push to the release Artifact Registry
+              docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.RELEASE_ARTIFACTORY }}/domain-registry-service:${{ env.TAG_NAME }}              
+            fi
+          else
+            # For pushes or manual triggers, push to the production Artifact Registry
+            docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
+          fi
