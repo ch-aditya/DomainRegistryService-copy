@@ -1,6 +1,8 @@
 name: CI-CD
 on:
   push:
+    tags:
+      - 'release/*'
     branches: ["main","develop","release/**"]
   pull_request:
     types: [opened]
@@ -14,6 +16,7 @@ env:
   PROJECT_ID: architect-learning-435310
   REGION: asia-south1
   REPO_NAME: domain-registry-repo
+  AUTH_SERVICE_ACCOUNT: domain-registry-auth-sa@architect-learning-435310.iam.gserviceaccount.com
 
 jobs:
   deploy_to_artifact_registry:
@@ -37,7 +40,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: "projects/342909886583/locations/global/workloadIdentityPools/domain-registry-service/providers/git-repo-provider"
-          service_account: "domain-registry-auth-sa@architect-learning-435310.iam.gserviceaccount.com"
+          service_account: ${{env.AUTH_SERVICE_ACCOUNT}}
 
       # Set up gcloud CLI (Optional, but helpful for BigQuery, GCS, etc.)
       - name: Set up Cloud SDK
@@ -52,13 +55,18 @@ jobs:
       - name: Docker Auth
         run: |-
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
-          
+
+      # Extract the tag version
+      - name: Get tag version
+        id: get_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/release/}" >> $GITHUB_ENV
+
       # Build Docker image
       - name: Build Docker image
         run: |-
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/my-app:latest .
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/my-app:${{ env.TAG_NAME }} .
 
       # Push Docker image to GCP Artifact Registry
       - name: Push Docker image
         run: |-
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/my-app:latest
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/domain-registry-service:${{ env.TAG_NAME }}
