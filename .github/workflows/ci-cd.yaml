@@ -62,7 +62,13 @@ jobs:
       # Extract the tag version
       - name: Get tag version
         id: get_tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+#        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          echo "TAG_NAME=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          else
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
 
       # Build Docker image
       - name: Build Docker image
